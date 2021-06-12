@@ -81,7 +81,7 @@ func (b *Bundle) sign(jsonRpc JsonRpc) (signature string, err error) {
 	if err != nil {
 		return "", err
 	}
-	fmt.Println(string(marshal))
+
 	ecdsaPrivateKey, err := crypto.HexToECDSA(b.Signer)
 	if err != nil {
 		return "", err

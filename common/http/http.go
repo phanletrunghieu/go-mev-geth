@@ -7,8 +7,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-
-	"github.com/sirupsen/logrus"
 )
 
 type Param struct {
@@ -28,14 +26,12 @@ func Get(url string, res interface{}, param ...Param) (err error) {
 	}
 	err = json.Unmarshal(body, &res)
 	if err != nil {
-		logrus.Warn(fmt.Sprintf("decode resp to struct err: %s, resp body: %s", err.Error(), string(body)))
 		_ = errors.New("decode resp to struct err")
 	}
 	return
 }
 
 func Post(url string, payload interface{}, res interface{}, header ...map[string]string) (err error) {
-	logrus.Info(fmt.Sprintf("send post: %s, payload: %s\n", url, payload))
 	var body []byte
 	if len(header) > 0 {
 		body, err = post(url, payload, header[0])
@@ -47,7 +43,6 @@ func Post(url string, payload interface{}, res interface{}, header ...map[string
 	}
 	err = json.Unmarshal(body, &res)
 	if err != nil {
-		logrus.Warn(fmt.Sprintf("decode resp to struct err: %s, resp body: %s", err.Error(), string(body)))
 		_ = errors.New("decode resp to struct err")
 	}
 	return
@@ -99,7 +94,6 @@ func post(url string, payload interface{}, header ...map[string]string) (res []b
 	}
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := client.Do(req)
-	fmt.Println("response body: ", resp.Body)
 	if err != nil {
 		return
 	}
