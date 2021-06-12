@@ -1,4 +1,4 @@
-module go-mev-geth
+module github.com/phanletrunghieu/go-mev-geth
 
 go 1.16
 

@@ -3,18 +3,18 @@ package bundle
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
-	"go-mev-geth/common/http"
-	"math/big"
+
+	"github.com/phanletrunghieu/go-mev-geth/common/http"
 )
 
 var (
-	Relay               = "https://relay.flashbots.net"
-	TestnetRelay        = "https://relay-goerli.flashbots.net"
-	method_simulate     = "eth_callBundle"
-	method_send         = "eth_sendBundle"
-	method_getUserStats = "flashbots_getUserStats"
+	Relay           = "https://relay.flashbots.net"
+	TestnetRelay    = "https://relay-goerli.flashbots.net"
+	method_simulate = "eth_callBundle"
+	method_send     = "eth_sendBundle"
 )
 
 type (
@@ -26,11 +26,12 @@ type (
 	}
 
 	Bundle struct {
-		Signer             string   `json:"signer"`
-		SignedTransactions []string `json:"signedTransactions"`
-		BlockNumber        string   `json:"blocknumber"`
-		MinTimestamp       int      `json:"minTimestamp"`
-		MaxTimestamp       int      `json:"maxTimestamp"`
+		Relay              string   `json:"-"`
+		Signer             string   `json:"-"`
+		SignedTransactions []string `json:"txs"`
+		BlockNumber        string   `json:"blockNumber"`
+		MinTimestamp       *int     `json:"minTimestamp"`
+		MaxTimestamp       *int     `json:"maxTimestamp"`
 	}
 
 	Response interface{}
@@ -41,18 +42,20 @@ type (
 			Code    int    `json:"code"`
 		} `json:"error"`
 	}
-
-	SimulationResponseSuccess struct {
-		bundleHash   string
-		coinbaseDiff *big.Int
-		results      []interface{}
-		totalGasUsed uint64
-		firstRevert  []interface{}
-	}
 )
 
-func NewBundle(signer string, signedTransactions []string, blockNumber uint64) *Bundle {
-	return &Bundle{Signer: signer, SignedTransactions: signedTransactions, BlockNumber: "0x" + fmt.Sprintf("%x", blockNumber)}
+func NewBundle(
+	relay string,
+	signer string,
+	signedTransactions []string,
+	blockNumber uint64,
+) *Bundle {
+	return &Bundle{
+		Relay:              relay,
+		Signer:             signer,
+		SignedTransactions: signedTransactions,
+		BlockNumber:        "0x" + fmt.Sprintf("%x", blockNumber),
+	}
 }
 
 func (b *Bundle) Send() (res Response, err error) {
@@ -65,7 +68,7 @@ func (b *Bundle) Send() (res Response, err error) {
 	if err != nil {
 		return nil, err
 	}
-	err = http.Post(Relay, payload, res, map[string]string{"X-Flashbots-Signature": signerAddress + ":" + signature})
+	err = http.Post(b.Relay, payload, res, map[string]string{"X-Flashbots-Signature": signerAddress + ":" + signature})
 	return res, err
 }
 
@@ -100,12 +103,18 @@ func (b *Bundle) Simulate() (res Response, err error) {
 	if err != nil {
 		return nil, err
 	}
-	err = http.Post(Relay, payload, res, map[string]string{"X-Flashbots-Signature": singerAddress + ":" + signature})
+	err = http.Post(b.Relay, payload, res, map[string]string{"X-Flashbots-Signature": singerAddress + ":" + signature})
 	return res, err
 }
 
 func (b *Bundle) prepareRequest(method string) JsonRpc {
-	return JsonRpc{Jsonrpc: "2.0", Method: method, Params: []interface{}{b.SignedTransactions, b.BlockNumber, b.MinTimestamp, b.MaxTimestamp}, ID: 1}
+	return JsonRpc{
+		Jsonrpc: "2.0",
+		Method:  method,
+		Params: []interface{}{
+			b,
+		},
+		ID: 1}
 }
 
 func (b *Bundle) signerAddress() (address string, err error) {

@@ -2,14 +2,16 @@ package bundle
 
 import (
 	"context"
+	"math/big"
+	"testing"
+
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
-	"go-mev-geth/eth"
-	"go-mev-geth/eth/contract/mevtransfer"
-	"math/big"
-	"testing"
+
+	"github.com/phanletrunghieu/go-mev-geth/eth"
+	"github.com/phanletrunghieu/go-mev-geth/eth/contract/mevtransfer"
 )
 
 var (
@@ -30,7 +32,7 @@ func TestBundle_Simulate(t *testing.T) {
 	}
 	signedTx1 := signTx(t, nonce, 1, 0)
 	signedTx2 := signTx(t, nonce+1, 10000000000000001, 10000000000000000)
-	bundle := NewBundle(signer, []string{signedTx1, signedTx2}, blockNumber+1)
+	bundle := NewBundle(TestnetRelay, signer, []string{signedTx1, signedTx2}, blockNumber+1)
 	res, err := bundle.Simulate()
 	if err != nil {
 		t.Log(res)
