@@ -8,8 +8,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
-
-	"github.com/k0kubun/pp"
 )
 
 type Param struct {
@@ -97,7 +95,6 @@ func post(url string, payload interface{}, header ...map[string]string) (res []b
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Content-Length", strconv.Itoa(len(jsonBytes)))
-	pp.Println(req.Header)
 	resp, err := client.Do(req)
 	if err != nil {
 		return

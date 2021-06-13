@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/k0kubun/pp"
 
 	"github.com/phanletrunghieu/go-mev-geth/common/http"
 )
@@ -21,10 +21,10 @@ var (
 
 type (
 	JsonRpc struct {
-		Jsonrpc string        `json:"jsonrpc"`
 		Method  string        `json:"method"`
 		Params  []interface{} `json:"params"`
 		ID      int64         `json:"id"`
+		Jsonrpc string        `json:"jsonrpc"`
 	}
 
 	Bundle struct {
@@ -32,8 +32,8 @@ type (
 		Signer             string   `json:"-"`
 		SignedTransactions []string `json:"txs"`
 		BlockNumber        string   `json:"blockNumber"`
-		MinTimestamp       *int     `json:"minTimestamp"`
-		MaxTimestamp       *int     `json:"maxTimestamp"`
+		MinTimestamp       *int     `json:"minTimestamp,omitempty"`
+		MaxTimestamp       *int     `json:"maxTimestamp,omitempty"`
 	}
 
 	Response interface{}
@@ -70,15 +70,8 @@ func (b *Bundle) Send() (res Response, err error) {
 	if err != nil {
 		return nil, err
 	}
-	err = http.Post(b.Relay, payload, res, map[string]string{"X-Flashbots-Signature": signerAddress + ":" + signature})
-	pp.Println(res)
+	err = http.Post(b.Relay, payload, &res, map[string]string{"X-Flashbots-Signature": signerAddress + ":" + signature})
 	return res, err
-}
-
-func hashMessage(hashString string) []byte {
-	data := []byte(hashString)
-	msg := fmt.Sprintf("\x19Ethereum Signed Message:\n%d%s", len(data), data)
-	return crypto.Keccak256([]byte(msg))
 }
 
 func (b *Bundle) sign(jsonRpc JsonRpc) (signature string, err error) {
@@ -91,7 +84,7 @@ func (b *Bundle) sign(jsonRpc JsonRpc) (signature string, err error) {
 	if err != nil {
 		return "", err
 	}
-	signatureBytes, err := crypto.Sign(hashMessage(hexutil.Encode(crypto.Keccak256(marshal))), ecdsaPrivateKey)
+	signatureBytes, err := crypto.Sign(accounts.TextHash([]byte(hexutil.Encode(crypto.Keccak256(marshal)))), ecdsaPrivateKey)
 	if err != nil {
 		return "", err
 	}
