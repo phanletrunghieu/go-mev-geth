@@ -101,7 +101,7 @@ func (b *Bundle) Simulate() (res Response, err error) {
 	if err != nil {
 		return nil, err
 	}
-	err = http.Post(b.Relay, payload, res, map[string]string{"X-Flashbots-Signature": singerAddress + ":" + signature})
+	err = http.Post(b.Relay, payload, &res, map[string]string{"X-Flashbots-Signature": singerAddress + ":" + signature})
 	return res, err
 }
 
