@@ -112,7 +112,7 @@ func (b *Bundle) prepareRequest(method string) JsonRpc {
 		Jsonrpc: "2.0",
 		Method:  method,
 		Params: []interface{}{
-			b,
+			*b,
 		},
 		ID: 1}
 }
