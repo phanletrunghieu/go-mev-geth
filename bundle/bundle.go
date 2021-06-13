@@ -6,6 +6,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/k0kubun/pp"
 
 	"github.com/phanletrunghieu/go-mev-geth/common/http"
 )
@@ -70,11 +71,14 @@ func (b *Bundle) Send() (res Response, err error) {
 		return nil, err
 	}
 	err = http.Post(b.Relay, payload, res, map[string]string{"X-Flashbots-Signature": signerAddress + ":" + signature})
+	pp.Println(req.Header)
 	return res, err
 }
 
-func signHash(hashString string) []byte {
-	return crypto.Keccak256([]byte("\x19Ethereum Signed Message:\n66" + hashString))
+func hashMessage(hashString string) []byte {
+	data := []byte(hashString)
+	msg := fmt.Sprintf("\x19Ethereum Signed Message:\n%d%s", len(data), data)
+	return crypto.Keccak256([]byte(msg))
 }
 
 func (b *Bundle) sign(jsonRpc JsonRpc) (signature string, err error) {
@@ -87,7 +91,7 @@ func (b *Bundle) sign(jsonRpc JsonRpc) (signature string, err error) {
 	if err != nil {
 		return "", err
 	}
-	signatureBytes, err := crypto.Sign(signHash(hexutil.Encode(crypto.Keccak256(marshal))), ecdsaPrivateKey)
+	signatureBytes, err := crypto.Sign(hashMessage(hexutil.Encode(crypto.Keccak256(marshal))), ecdsaPrivateKey)
 	if err != nil {
 		return "", err
 	}
