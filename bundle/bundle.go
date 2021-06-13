@@ -71,7 +71,7 @@ func (b *Bundle) Send() (res Response, err error) {
 		return nil, err
 	}
 	err = http.Post(b.Relay, payload, res, map[string]string{"X-Flashbots-Signature": signerAddress + ":" + signature})
-	pp.Println(req.Header)
+	pp.Println(res)
 	return res, err
 }
 
