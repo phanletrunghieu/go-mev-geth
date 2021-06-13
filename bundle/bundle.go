@@ -15,6 +15,7 @@ var (
 	TestnetRelay    = "https://relay-goerli.flashbots.net"
 	method_simulate = "eth_callBundle"
 	method_send     = "eth_sendBundle"
+	id              = int64(0)
 )
 
 type (
@@ -108,13 +109,16 @@ func (b *Bundle) Simulate() (res Response, err error) {
 }
 
 func (b *Bundle) prepareRequest(method string) JsonRpc {
+	id++
+
 	return JsonRpc{
 		Jsonrpc: "2.0",
 		Method:  method,
 		Params: []interface{}{
 			*b,
 		},
-		ID: 1}
+		ID: id,
+	}
 }
 
 func (b *Bundle) signerAddress() (address string, err error) {
