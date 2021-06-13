@@ -34,6 +34,7 @@ type (
 		BlockNumber        string   `json:"blockNumber"`
 		MinTimestamp       *int     `json:"minTimestamp,omitempty"`
 		MaxTimestamp       *int     `json:"maxTimestamp,omitempty"`
+		StateBlockNumber   *string  `json:"stateBlockNumber,omitempty"`
 	}
 
 	Response interface{}
@@ -108,11 +109,18 @@ func (b *Bundle) Simulate() (res Response, err error) {
 func (b *Bundle) prepareRequest(method string) JsonRpc {
 	id++
 
+	stateBlockNumber := "latest"
+	bundleParam := *b
+
+	if method == method_simulate {
+		bundleParam.StateBlockNumber = &stateBlockNumber
+	}
+
 	return JsonRpc{
 		Jsonrpc: "2.0",
 		Method:  method,
 		Params: []interface{}{
-			*b,
+			bundleParam,
 		},
 		ID: id,
 	}
