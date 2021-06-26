@@ -33,7 +33,7 @@ func TestBundle_Simulate(t *testing.T) {
 	signedTx1 := signTx(t, nonce, 1, 0)
 	signedTx2 := signTx(t, nonce+1, 10000000000000001, 10000000000000000)
 	bundle := NewBundle(TestnetRelay, signer, []string{signedTx1, signedTx2}, blockNumber+1)
-	res, err := bundle.Simulate()
+	res, err := bundle.Simulate(nil)
 	if err != nil {
 		t.Log(res)
 		t.Fatal(err)

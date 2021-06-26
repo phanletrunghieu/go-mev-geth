@@ -3,12 +3,13 @@ package bundle
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 
 	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
 
-	"github.com/phanletrunghieu/go-mev-geth/common/http"
+	myhttp "github.com/phanletrunghieu/go-mev-geth/common/http"
 )
 
 var (
@@ -61,7 +62,7 @@ func NewBundle(
 	}
 }
 
-func (b *Bundle) Send() (res Response, err error) {
+func (b *Bundle) Send(client *http.Client) (res Response, err error) {
 	payload := b.prepareRequest(method_send)
 	signature, err := b.sign(payload)
 	if err != nil {
@@ -71,7 +72,7 @@ func (b *Bundle) Send() (res Response, err error) {
 	if err != nil {
 		return nil, err
 	}
-	err = http.Post(b.Relay, payload, &res, map[string]string{"X-Flashbots-Signature": signerAddress + ":" + signature})
+	err = myhttp.Post(b.Relay, payload, &res, client, map[string]string{"X-Flashbots-Signature": signerAddress + ":" + signature})
 	return res, err
 }
 
@@ -92,7 +93,7 @@ func (b *Bundle) sign(jsonRpc JsonRpc) (signature string, err error) {
 	return hexutil.Encode(signatureBytes), nil
 }
 
-func (b *Bundle) Simulate() (res Response, err error) {
+func (b *Bundle) Simulate(client *http.Client) (res Response, err error) {
 	payload := b.prepareRequest(method_simulate)
 	signature, err := b.sign(payload)
 	if err != nil {
@@ -102,7 +103,7 @@ func (b *Bundle) Simulate() (res Response, err error) {
 	if err != nil {
 		return nil, err
 	}
-	err = http.Post(b.Relay, payload, &res, map[string]string{"X-Flashbots-Signature": singerAddress + ":" + signature})
+	err = myhttp.Post(b.Relay, payload, &res, client, map[string]string{"X-Flashbots-Signature": singerAddress + ":" + signature})
 	return res, err
 }
 

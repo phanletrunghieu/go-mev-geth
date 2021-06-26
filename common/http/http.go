@@ -32,12 +32,12 @@ func Get(url string, res interface{}, param ...Param) (err error) {
 	return
 }
 
-func Post(url string, payload interface{}, res interface{}, header ...map[string]string) (err error) {
+func Post(url string, payload interface{}, res interface{}, client *http.Client, header ...map[string]string) (err error) {
 	var body []byte
 	if len(header) > 0 {
-		body, err = post(url, payload, header[0])
+		body, err = post(url, payload, client, header[0])
 	} else {
-		body, err = post(url, payload)
+		body, err = post(url, payload, client)
 	}
 	if err != nil {
 		return
@@ -78,12 +78,16 @@ func get(url string, param ...Param) (res []byte, err error) {
 	return ioutil.ReadAll(resp.Body)
 }
 
-func post(url string, payload interface{}, header ...map[string]string) (res []byte, err error) {
+func post(url string, payload interface{}, client *http.Client, header ...map[string]string) (res []byte, err error) {
 	jsonBytes, err := json.Marshal(payload)
 	if err != nil {
 		return
 	}
-	client := &http.Client{}
+
+	if client == nil {
+		client = &http.Client{}
+	}
+
 	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(jsonBytes))
 	if err != nil {
 		return nil, err
